@@ -1,0 +1,30 @@
+let parkingLots =
+    [
+        { name: "Raheja Artesia, Mumbai", lat: 19.0085666, long: 72.8212113, },
+        { name: "Lodha Washington House, Altamount Road, Forjett Hill Rd, Gowalia Tank, Tardeo, Mumbai, Maharashtra 400026", lat: 18.9683211, long: 72.8093998 },
+        { name: "Beaupride Govt Parking", lat: 19.0545151, long: 72.8313141 },
+        { name: "MCGM Parking", lat: 19.1137774, long: 72.8899932 },
+        { name: "Topiwala Center", lat: 19.1651203, long: 72.8413865 },
+        { name: "One Indiabulls Centre", lat: 19.0067199, long: 72.830016 },
+        { name: "LODHA Excelus", lat: 987824, long: 72.8266816 },
+        { name: "Cygnus Tower - Edelweiss", lat: 19.0709679, long: 72.8613076 },
+        { name: "Runwal Greens", lat: 19.1604861, long: 72.9432306 },
+        { name: "Kalpataru Avana, Dr Walimbe Rd, Parel, Mumbai, Maharashtra 400012", lat: 8.9988785, long: 72.8403471 },
+        { name: "INSIGNIA", lat: 19.0727216, long: 72.8654469 },
+        { name: "Runwal Anthurium", lat: 19.1806513, long: 72.9446548 },
+        { name: "lodha supreme building kanjurmarg", lat: 19.1293911, long: 72.9279636 },
+        { name: "Runwal Elegante", lat: 19.1413744, long: 72.8265069 },
+        { name: "vishweshwar nagar goreagaon", lat: 19.1692483, long: 72.8530389 },
+        { name: "oshiwara metro Oshiwara Metro Station", lat: 19.1513379, long: 72.8355886 },
+        { name: "Club Aquaria Enterprises", lat: 19.2379263, long: 72.8444245 },
+        { name: "Celestia Spaces Sewri", lat: 18.993161, long: 72.8354399 },
+        { name: "The Address - The Wadhwa Group", lat: 19.099483, long: 72.9145689 },
+        { name: "The Residence- runwal napensear road", lat: 18.9511763, long: 72.7957737 },
+        { name: "BMC Parking Hub", lat: 19.1539275, long: 72.8539021 },
+        { name: "kamala mill", 19.0030655, long: 72.8252513 },
+        { name: "Indiabulls Finance Center", lat: 19.0030915, long: 72.8190615 },
+        { name: "Vikas Palazzo", lat: 19.1694795, long: 72.9503565 },
+        { name: "World Towers", lat: 18.9983266, long: 72.8248711 },
+
+
+    ]

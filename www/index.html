@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<!--
+    Licensed to the Apache Software Foundation (ASF) under one
+    or more contributor license agreements.  See the NOTICE file
+    distributed with this work for additional information
+    regarding copyright ownership.  The ASF licenses this file
+    to you under the Apache License, Version 2.0 (the
+    "License"); you may not use this file except in compliance
+    with the License.  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing,
+    software distributed under the License is distributed on an
+    "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+     KIND, either express or implied.  See the License for the
+    specific language governing permissions and limitations
+    under the License.
+-->
+<html>
+
+<head>
+    <!--
+        Customize this policy to fit your own app's needs. For more guidance, see:
+            https://github.com/apache/cordova-plugin-whitelist/blob/master/README.md#content-security-policy
+        Some notes:
+            * gap: is required only on iOS (when using UIWebView) and is needed for JS->native communication
+            * https://ssl.gstatic.com is required only on Android and is needed for TalkBack to function properly
+            * Disables use of inline scripts in order to mitigate risk of XSS vulnerabilities. To change this:
+                * Enable inline JS: add 'unsafe-inline' to default-src
+        -->
+
+    <meta name="format-detection" content="telephone=no">
+    <meta name="msapplication-tap-highlight" content="no">
+    <meta name="viewport"
+        content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width">
+
+    <meta http-equiv="Content-Security-Policy" script-src='unsafe-inline' ;>
+    <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="css/index.css">
+    <!-- <link rel="stylesheet" type="text/css" href="css/leaflet.css" /> -->
+    <link rel="stylesheet" type="text/css" href="dist/bhugyan.css" />
+
+    <!-- <script type="text/javascript" src="js/leaflet.js"></script> -->
+    <script type="text/javascript" src="js/jquery-3.4.1.min.js"></script>
+    <script type="text/javascript" src="js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="dist/bhugyan.js"></script>
+    <script type="text/javascript" src="js/leaflet.rotatedMarker.js"></script>
+    <!-- <script src="https://unpkg.com/leaflet@1.2.0/dist/leaflet.js"
+               integrity="sha512-lInM/apFSqyy1o6s89K4iQUKg6ppXEgsVxT35HbzUupEVRh2Eu9Wdl4tHj7dZO0s1uvplcYGmt3498TtHq+log=="
+               crossorigin=""></script> -->
+
+    <title>Park Assist</title>
+</head>
+
+<body>
+    <div class="container-fluid">
+        <div style="height: 100%;">
+            <div class="h-25 d-inline-block">
+                <h3>Bhugyan Parking Assist</h3>
+                <div class="row">
+                    <label class="col-sm-4">Nearest Parking Lot</label>
+                    <label id="nearestParkingLotName" class="col-sm-4"></label>
+                </div>
+                <div class="row">
+                    <label class="col-sm-4">Nearest Parking Distance:</label>
+                    <div class="col-sm-4"><label id="nearestParkingLotDistance"></label>KM
+                    </div>
+                </div>
+                <audio src="car-lock.mp3" id="audioAlert"></audio>
+
+                <div id="alertMessage" class="alert alert-danger">Alert! You are within 500 meters of a public
+                    parking lot! Avoid fine of ₹ 10,000 by utilizing a public parking lot instead!</div>
+            </div>
+            <div class="h-75 d-inline-block">
+                <div id="mapid" style="height: 900px; width: 900px"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- <div class="app">
+        <!-- <h1>Apache Cordova</h1>
+        <div id="deviceready" class="blink">
+            <p class="event listening">Connecting to Device</p>
+            <p class="event received">Device is Ready</p>
+        </div>         <div id="mapid"></div>
+    </div> -->
+    <script type="text/javascript" src="cordova.js"></script>
+    <script type="text/javascript" src="js/index.js"></script>
+    <script>
+        var distance = function (lat1, lon1, lat2, lon2, unit) {
+
+            if ((lat1 == lat2) && (lon1 == lon2)) {
+                return 0;
+            }
+            else {
+                var radlat1 = Math.PI * lat1 / 180;
+                var radlat2 = Math.PI * lat2 / 180;
+                var theta = lon1 - lon2;
+                var radtheta = Math.PI * theta / 180;
+                var dist = Math.sin(radlat1) * Math.sin(radlat2) + Math.cos(radlat1) * Math.cos(radlat2) * Math.cos(radtheta);
+                if (dist > 1) {
+                    dist = 1;
+                }
+                dist = Math.acos(dist);
+                dist = dist * 180 / Math.PI;
+                dist = dist * 60 * 1.1515;
+                if (unit == "K") { dist = dist * 1.609344 }
+                if (unit == "N") { dist = dist * 0.8684 }
+                return dist;
+            }
+        }
+        var parkingIcon = L.icon({
+            iconUrl: 'parking-icon.png',
+            iconSize: [35, 35],
+            iconAnchor: [15, 15]
+        });
+
+        var selfPositionIcon = L.icon({
+            iconUrl: 'car.png',
+            iconSize: [25, 46],
+            iconAnchor: [15, 15]
+        });
+
+        var parkingLots =
+            [
+                { name: "Raheja Artesia, Mumbai", lat: 19.0085666, long: 72.8212113, },
+                { name: "Lodha Washington House, Altamount Road, Forjett Hill Rd, Gowalia Tank, Tardeo, Mumbai, Maharashtra 400026", lat: 18.9683211, long: 72.8093998 },
+                { name: "Beaupride Govt Parking", lat: 19.0545151, long: 72.8313141 },
+                { name: "boomerang MCGM Parking", lat: 19.1137774, long: 72.8899932 },
+                { name: "Topiwala Center", lat: 19.1651203, long: 72.8413865 },
+                { name: "One Indiabulls Centre", lat: 19.0067199, long: 72.830016 },
+                { name: "LODHA Excelus", lat: 19.987824, long: 72.8266816 },
+                { name: "Cygnus Tower - Edelweiss", lat: 19.0709679, long: 72.8613076 },
+                { name: "Runwal Greens", lat: 19.1604861, long: 72.9432306 },
+                { name: "Kalpataru Avana, Dr Walimbe Rd, Parel, Mumbai, Maharashtra 400012", lat: 8.9988785, long: 72.8403471 },
+                { name: "INSIGNIA", lat: 19.0727216, long: 72.8654469 },
+                { name: "Runwal Anthurium", lat: 19.1806513, long: 72.9446548 },
+                { name: "lodha supreme building kanjurmarg", lat: 19.1293911, long: 72.9279636 },
+                { name: "Runwal Elegante", lat: 19.1413744, long: 72.8265069 },
+                { name: "vishweshwar nagar goreagaon", lat: 19.1692483, long: 72.8530389 },
+                { name: "oshiwara metro Oshiwara Metro Station", lat: 19.1513379, long: 72.8355886 },
+                { name: "Club Aquaria Enterprises", lat: 19.2379263, long: 72.8444245 },
+                { name: "Celestia Spaces Sewri", lat: 18.993161, long: 72.8354399 },
+                { name: "The Address - The Wadhwa Group", lat: 19.099483, long: 72.9145689 },
+                { name: "The Residence- runwal napensear road", lat: 18.9511763, long: 72.7957737 },
+                { name: "BMC Parking Hub", lat: 19.1539275, long: 72.8539021 },
+                { name: "kamala mill", lat: 19.0030655, long: 72.8252513 },
+                { name: "Indiabulls Finance Center", lat: 19.0030915, long: 72.8190615 },
+                { name: "Vikas Palazzo", lat: 19.1694795, long: 72.9503565 },
+                { name: "World Towers", lat: 18.9983266, long: 72.8248711 },
+
+
+            ]
+
+        var onGetPositionSuccess = function (position) {
+            console.log('Latitude: ' + position.coords.latitude + '\n' +
+                'Longitude: ' + position.coords.longitude + '\n' +
+                'Altitude: ' + position.coords.altitude + '\n' +
+                'Accuracy: ' + position.coords.accuracy + '\n' +
+                'Altitude Accuracy: ' + position.coords.altitudeAccuracy + '\n' +
+                'Heading: ' + position.coords.heading + '\n' +
+                'Speed: ' + position.coords.speed + '\n' +
+                'Timestamp: ' + position.timestamp + '\n');
+
+            selfMarker.setLatLng([position.coords.latitude, position.coords.longitude]);
+            selfMarker.setRotationAngle(position.coords.heading); // added sb
+
+            mymap.setView([position.coords.latitude, position.coords.longitude]);
+
+
+            var closetParkingLotDist = 1000;
+            for (var parkingLot in parkingLots) {
+
+                var distFromParkingLot = distance(position.coords.latitude, position.coords.longitude, parkingLots[parkingLot].lat, parkingLots[parkingLot].long, 'K');
+                if (distFromParkingLot < closetParkingLotDist) {
+                    closetParkingLotDist = distFromParkingLot;
+                    document.getElementById("nearestParkingLotName").innerHTML = parkingLots[parkingLot].name;
+                    document.getElementById("nearestParkingLotDistance").innerHTML = closetParkingLotDist.toFixed(2);
+                }
+            }
+
+
+            if (closetParkingLotDist < 0.5) {
+                //document.getElementById("alertMessage").style.display = "block";
+                $('#alertMessage').show();
+                document.getElementById("audioAlert").play();
+                //navigator.vibrate(5000);
+            } else {
+                //document.getElementById("alertMessage").style.display = "none";
+                $('#alertMessage').hide();
+            }
+
+        };
+        //document.getElementById("alertMessage").style.display = "none";
+        $('#alertMessage').hide();
+
+        //arbitrary position for self marker
+        var mymap = L.map('mapid', { attributionControl: false }).setView([19.228825, 72.854118], 13);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(mymap);
+
+
+        parkingLots.forEach(function (parkingLot) {
+            L.marker([parkingLot.lat, parkingLot.long], { icon: parkingIcon }).addTo(mymap);
+            L.circle([parkingLot.lat, parkingLot.long], 500).addTo(mymap);
+        });
+
+        var selfMarker = L.marker([19.228825, 72.854118], { icon: selfPositionIcon }, { rotationAngle: 0.0 }).addTo(mymap);
+
+        function onPositionError(error) {
+            alert('code: ' + error.code + '\n' +
+                'message: ' + error.message + '\n');
+        }
+
+        navigator.geolocation.watchPosition(onGetPositionSuccess, onPositionError, { maximumAge: 3000, timeout: 5000, enableHighAccuracy: true });
+
+    </script>
+</body>
+
+</html>
