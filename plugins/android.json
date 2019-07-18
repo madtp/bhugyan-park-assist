@@ -7,14 +7,14 @@
     "files": {}
   },
   "installed_plugins": {
-    "cordova-plugin-whitelist": {
-      "PACKAGE_NAME": "com.app.parkassist"
-    },
     "cordova-plugin-geolocation": {
-      "PACKAGE_NAME": "com.app.parkassist"
+      "PACKAGE_NAME": "com.bhugyan.parkassist"
     },
     "cordova-plugin-vibration": {
-      "PACKAGE_NAME": "com.app.parkassist"
+      "PACKAGE_NAME": "com.bhugyan.parkassist"
+    },
+    "cordova-plugin-whitelist": {
+      "PACKAGE_NAME": "com.bhugyan.parkassist"
     }
   },
   "dependent_plugins": {}
