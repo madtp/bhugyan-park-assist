@@ -141,6 +141,7 @@
     <script type="text/javascript" src="cordova.js"></script>
     <script type="text/javascript" src="js/index.js"></script>
     <script>
+        let currentPosition = {}
         var distance = function (lat1, lon1, lat2, lon2, unit) {
 
             if ((lat1 == lat2) && (lon1 == lon2)) {
@@ -229,8 +230,8 @@
             selfMarker.setLatLng([position.coords.latitude, position.coords.longitude]);
             selfMarker.setRotationAngle(averageHeading); // added sb
 
-            bhugyanMap.setView([position.coords.latitude, position.coords.longitude]);
-
+            //bhugyanMap.setView([position.coords.latitude, position.coords.longitude]);
+            currentPosition = position;
             var closetParkingLot = {};
             var closetParkingLotDist = 1000;
             for (var parkingLot in parkingLots) {
@@ -261,24 +262,52 @@
         $('#alertMessage').hide();
 
         //arbitrary position for self marker
-        var bhugyanMap = L.map('bhugyanMap', { attributionControl: false }).setView([19.228825, 72.854118], 13);
+        var bhugyanMap = bhugyan.loadMap('bhugyanMap', { url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', attributionControl: false })
+        bhugyan.defaultMap.setView([19.228825, 72.854118], 13);
 
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        }).addTo(bhugyanMap);
+        // L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        //     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        // }).addTo(bhugyanMap);
 
 
         parkingLots.forEach(function (parkingLot) {
-            L.marker([parkingLot.lat, parkingLot.long], { icon: parkingIcon }).addTo(bhugyanMap);
-            L.circle([parkingLot.lat, parkingLot.long], 500).addTo(bhugyanMap);
+            L.marker([parkingLot.lat, parkingLot.long], { icon: parkingIcon }).addTo(bhugyan.defaultMap);
+
+            L.circle([parkingLot.lat, parkingLot.long], 500).addTo(bhugyan.defaultMap);
         });
 
-        var selfMarker = L.marker([19.228825, 72.854118], { icon: selfPositionIcon }, { rotationAngle: 0.0 }).addTo(bhugyanMap);
-
+        var selfMarker = L.marker([19.228825, 72.854118], { icon: selfPositionIcon }, { rotationAngle: 0.0 }).addTo(bhugyan.defaultMap);
+        //var locateIcon = bhugyan.defineFeatureIcon('locateMe.png')
+        const locateMeIcon = bhugyan.defineFeatureIcon({
+            iconUrl: 'locateMe.png',
+            markerColor: 'blue',
+            shape: 'square',
+            iconSize: [24, 24],
+            iconAnchor: [12, 12],
+            popupAnchor: [0, -12]
+        });
+        const locateMeMarker = bhugyan.defineMarker(locateMeIcon);
+        var locateMeAction = L.Toolbar2.Action.extend({
+            options: {
+                toolbarIcon: {
+                    html: '&#9898;',
+                    tooltip: 'Locate Me'
+                }
+            },
+            addHooks: function () {
+                bhugyan.defaultMap.setView([currentPosition.coords.latitude, currentPosition.coords.longitude], 19);
+            }
+        });
+        new L.Toolbar2.Control({
+            position: 'bottomright',
+            actions: [locateMeAction]
+        }).addTo(bhugyan.defaultMap);
         function onPositionError(error) {
-            alert('code: ' + error.code + '\n' +
+            alert('Error fetching location!' + '\n' +
+                'code: ' + error.code + '\n' +
                 'message: ' + error.message + '\n');
         }
+
         navigator.geolocation.watchPosition(onGetPositionSuccess, onPositionError, { maximumAge: 3000, timeout: 5000, enableHighAccuracy: true });
 
     </script>
